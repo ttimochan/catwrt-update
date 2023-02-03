@@ -3,34 +3,59 @@
  # @Author: timochan
  # @Date: 2023-02-03 19:45:22
  # @LastEditors: timochan
- # @LastEditTime: 2023-02-03 20:52:49
+ # @LastEditTime: 2023-02-03 21:56:11
  # @FilePath: /catwrt-update/catwrt_update.sh
 ### 
-get_remote_version() {
+remote_error() {
+    echo "Remote $1 get failed, please check your network!"
+    exit 1
+}
+local_error() {
+    echo "Local $1 get failed, please check your /etc/catwrt_release!"
+    exit 1
+}
+get_remote_version(){
+    arch_self=$1
     version_remote=`curl https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update | jq -r '.version'`
     if [ $? -ne 0 ] || [ -z $version_remote ]; then
-        echo "Remote version get failed, please check your network!"
+        remote_error "version"
         exit 1
     fi
-   
-    hash_remote=`curl https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update | jq -r '.hash'`
+    if [ $arch_self == "x86_64" ]; then
+        hash_remote=`curl https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update | jq -r '.hash_amd64'`
+    elif [ $arch_self == "aarch64" ]; then
+        hash_remote=`curl https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update | jq -r '.hash_arm'`
+    elif [ $arch_self == "mips" ]; then
+        hash_remote=`curl https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update | jq -r '.hash_wireless'`
+    else 
+        echo "Your system is not supported!"
+        exit 1
+    fi
+
     if [ $? -ne 0 ] || [ -z $hash_remote ]; then
-        echo "Remote hash get failed, please check your network!"
+        remote_error "hash"
         exit 1
     fi
 }
-
+get_arch_and_remote_version() {
+    arch=`uname -m`
+    if [ $? -ne 0 ] || [ -z $arch ]; then
+        echo "Arch get failed, please check your system!"
+        exit 1
+    fi
+    if [ $arch == "x86_64" ]; then
+       get_remote_version $arch
+    fi
+}
 get_local_version(){
+
+    if [ ! -f /etc/catwrt_release ]; then
+        local_error "version file"
+        exit 1
+    fi
     version_local=`cat /etc/catwrt_release | grep 'version' | cut -d '=' -f 2`
-    if [ $? -ne 0 ]; then
-        echo "Local version get failed, please check your /etc/catwrt_release!"
-        exit 1
-    fi
     hash_local=`cat /etc/catwrt_release | grep 'hash' | cut -d '=' -f 2`
-    if [ $? -ne 0 ]; then
-        echo "Local hash get failed, please check your /etc/catwrt_release!"
-        exit 1
-    fi
+
 
 }
 contrast_version(){
@@ -48,7 +73,7 @@ print_version(){
         echo "Remote Hash : $hash_remote"
 }
 main(){
-    get_remote_version
+    get_arch_and_remote_version
     get_local_version
     contrast_version
     print_version
