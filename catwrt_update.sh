@@ -3,7 +3,7 @@
  # @Author: timochan
  # @Date: 2023-02-03 19:45:22
  # @LastEditors: timochan
- # @LastEditTime: 2023-02-03 21:56:11
+ # @LastEditTime: 2023-02-04 10:24:04
  # @FilePath: /catwrt-update/catwrt_update.sh
 ### 
 remote_error() {
@@ -43,9 +43,9 @@ get_arch_and_remote_version() {
         echo "Arch get failed, please check your system!"
         exit 1
     fi
-    if [ $arch == "x86_64" ]; then
-       get_remote_version $arch
-    fi
+
+    get_remote_version $arch
+
 }
 get_local_version(){
 
