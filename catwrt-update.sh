@@ -3,7 +3,7 @@
  # @Author: timochan
  # @Date: 2023-02-03 19:45:22
  # @LastEditors: timochan
- # @LastEditTime: 2023-02-05 23:43:10
+ # @LastEditTime: 2023-02-06 00:16:52
  # @FilePath: /catwrt-update/catwrt-update.sh
 ### 
 remote_error() {
@@ -11,7 +11,7 @@ remote_error() {
     exit 1
 }
 local_error() {
-    echo "Local $1 get failed, please check your /etc/catwrt_release!"
+    echo "Local $1 get failed, please check your /etc/catwrt-release!"
     exit 1
 }
 get_remote_version(){
