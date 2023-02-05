@@ -3,7 +3,7 @@
  # @Author: timochan
  # @Date: 2023-02-03 19:45:22
  # @LastEditors: timochan
- # @LastEditTime: 2023-02-06 00:16:52
+ # @LastEditTime: 2023-02-06 00:19:13
  # @FilePath: /catwrt-update/catwrt-update.sh
 ### 
 remote_error() {
@@ -49,7 +49,7 @@ get_arch_and_remote_version() {
 }
 get_local_version(){
 
-    if [ ! -f /etc/catwrt_release ]; then
+    if [ ! -f /etc/catwrt-release ]; then
         local_error "version file"
         exit 1
     fi
