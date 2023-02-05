@@ -3,8 +3,8 @@
  # @Author: timochan
  # @Date: 2023-02-03 19:45:22
  # @LastEditors: timochan
- # @LastEditTime: 2023-02-04 10:24:04
- # @FilePath: /catwrt-update/catwrt_update.sh
+ # @LastEditTime: 2023-02-05 23:43:10
+ # @FilePath: /catwrt-update/catwrt-update.sh
 ### 
 remote_error() {
     echo "Remote $1 get failed, please check your network!"
@@ -53,8 +53,8 @@ get_local_version(){
         local_error "version file"
         exit 1
     fi
-    version_local=`cat /etc/catwrt_release | grep 'version' | cut -d '=' -f 2`
-    hash_local=`cat /etc/catwrt_release | grep 'hash' | cut -d '=' -f 2`
+    version_local=`cat /etc/catwrt-release | grep 'version' | cut -d '=' -f 2`
+    hash_local=`cat /etc/catwrt-release | grep 'hash' | cut -d '=' -f 2`
 
 
 }
