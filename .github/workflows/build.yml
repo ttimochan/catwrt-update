@@ -12,18 +12,18 @@ jobs:
           - build: linux
             os: ubuntu-latest
             rust: nightly
-            target: x86_64-unknown-linux-musl
-            archive-name: sgf-render-linux.tar.gz
+            target: x86_64-unknown-linux-gnu
+            archive-name: catwrt-update-linux-amd64.tar.gz
           - build: macos
             os: macos-latest
             rust: nightly
             target: x86_64-apple-darwin
-            archive-name: sgf-render-macos.tar.gz
+            archive-name: catwrt-update.tar.gz
           - build: windows
             os: windows-2019
             rust: nightly-x86_64-msvc
             target: x86_64-pc-windows-msvc
-            archive-name: sgf-render-windows.7z
+            archive-name: catwrt-update-windows.7z
       fail-fast: false
 
     steps:
