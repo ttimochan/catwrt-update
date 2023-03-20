@@ -1,0 +1,12 @@
+[package]
+name = "catwrt-update"
+version = "0.1.0"
+edition = "2021"
+authors = ["timochan <teemo@timochan.cn> " ]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2.140"
+reqwest = { version = "0.11.4", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+
