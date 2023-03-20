@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-20 16:04:37
+ * @LastEditTime: 2023-03-20 16:31:42
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -34,6 +34,7 @@ fn get_arch() -> String {
     let arch = match arch {
         "x86_64" => "amd64",
         "aarch64" => "arm64",
+        "mips" => "mips",
         _ => "unknown",
     };
     arch.to_string()
@@ -94,6 +95,7 @@ fn fetch_api_data(arch: String) -> Result<ApiResponse, Box<dyn Error>> {
         .get("version")
         .ok_or("API response does not contain version field")?
         .to_owned();
+
     let mut hash = String::new();
 
     if arch == "amd64" {
@@ -106,7 +108,14 @@ fn fetch_api_data(arch: String) -> Result<ApiResponse, Box<dyn Error>> {
             .get("hash_arm")
             .ok_or("API response does not contain hash field")?
             .to_owned();
+    } else if arch == "mips" {
+        hash = response
+            .get("hash_mips")
+            .ok_or("API response does not contain hash field")?
+            .to_owned();
+    } else {
+        eprintln!("This arch is not supported!");
+        process::exit(1);
     }
-
     Ok(ApiResponse { version, hash })
 }
