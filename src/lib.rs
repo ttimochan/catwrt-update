@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-20 16:31:42
+ * @LastEditTime: 2023-03-20 16:40:45
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -110,7 +110,7 @@ fn fetch_api_data(arch: String) -> Result<ApiResponse, Box<dyn Error>> {
             .to_owned();
     } else if arch == "mips" {
         hash = response
-            .get("hash_mips")
+            .get("hash_wireless_mt7986a")
             .ok_or("API response does not contain hash field")?
             .to_owned();
     } else {
