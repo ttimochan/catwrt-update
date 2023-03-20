@@ -45,7 +45,7 @@ jobs:
 
       - name: Strip binary (linux and macos)
         if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: strip "target/${{ matrix.target }}/release/sgf-render"
+        run: strip "target/${{ matrix.target }}/release/catwrt-update"
 
       - name: Build archive
         shell: bash
@@ -54,11 +54,11 @@ jobs:
           cp LICENSE README.md archive/
           cd archive
           if [ "${{ matrix.build }}" = "windows" ]; then
-            cp "../target/${{ matrix.target }}/release/sgf-render.exe" ./
-            7z a "${{ matrix.archive-name }}" LICENSE README.md sgf-render.exe
+            cp "../target/${{ matrix.target }}/release/catwrt-update.exe" ./
+            7z a "${{ matrix.archive-name }}" LICENSE README.md catwrt-update.exe
           else
-            cp "../target/${{ matrix.target }}/release/sgf-render" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md sgf-render
+            cp "../target/${{ matrix.target }}/release/catwrt-update" ./
+            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
           fi
       - name: Upload archive
         uses: actions/upload-artifact@v1
