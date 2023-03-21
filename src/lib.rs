@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-20 16:40:45
+ * @LastEditTime: 2023-03-21 22:28:23
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -56,8 +56,8 @@ fn get_version() -> String {
     version.to_string()
 }
 fn get_hash() -> String {
-    let os_release = fs::read_to_string("/etc/catwrt-release").unwrap_or_else(|err| {
-        eprintln!("This file not found! {}", err);
+    let os_release = fs::read_to_string("/etc/catwrt-release").unwrap_or_else(|_| {
+        eprintln!("This file not found! Please check your system!");
         process::exit(1)
     });
     let os_release = os_release.split("\n").collect::<Vec<&str>>();
