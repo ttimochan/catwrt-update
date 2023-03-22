@@ -7,44 +7,51 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [ubuntu-latest]
-        target: [armv7-unknown-linux-musl, armv8-unknown-linux-musl , x86_64-unknown-linux-musl, mips-unknown-linux-musl]
-        name: [armv7-musl,armv8-musl ,x86_64-musl, mips-musl]
+        target: [aarch64-unknown-linux-musl, mips-unknown-linux-musl, x86_64-unknown-linux-musl]
+        qemu: [aarch64, mips, x86_64]
+        name: [aarch64-musl, mips-musl, x86_64-musl]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: ${{ matrix.qemu }} 
 
-    - name: Install cross-compilation dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
 
-    - name: Build release binaries
-      run: cargo build --release --target=$TARGET --features=ssl --all-features
+      - name: Install cross-compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libssl-dev
 
-    - name: Create release artifacts
-      run: |
-        mkdir artifacts/$NAME
-        cp target/$TARGET/release/* artifacts/$NAME/
-        cd artifacts
-        zip -r release-$NAME.zip $NAME/
+      - name: Build release binaries
+        run: |
+          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=$TARGET --features=ssl --all-features
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref }}
-        name: Release ${{ github.ref }}
-        files: |
-          artifacts/*.zip
-        body: |
-          Release ${{ github.ref }}
+      - name: Create release artifacts
+        run: |
+          mkdir artifacts/$NAME
+          cp target/$TARGET/release/* artifacts/$NAME/
+          cd artifacts
+          zip -r release-$NAME.zip $NAME/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ github.ref }}
+          files: |
+            artifacts/*.zip
+          body: |
+            Release ${{ github.ref }}
