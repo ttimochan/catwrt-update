@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:37:19
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-22 11:38:34
+ * @LastEditTime: 2023-03-22 18:28:20
  * @FilePath: /catwrt-update/src/main.rs
  */
 use catwrt_update::{ApiResponse, Local};
@@ -21,5 +21,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("You are using an old version!");
         println!("The latest version is: {}", api.version);
     }
+
     Ok(())
 }

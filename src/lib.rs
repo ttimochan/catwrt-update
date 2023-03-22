@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-22 11:37:39
+ * @LastEditTime: 2023-03-22 18:29:20
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -12,6 +12,7 @@ use std::fs;
 use std::process;
 
 const API_URL: &str = "https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update";
+const VERSION_FILE: &str = "/etc/catwrt-release";
 
 #[derive(Debug)]
 pub struct Local {
@@ -25,7 +26,11 @@ impl Local {
         let arch = get_arch();
         let version = get_version()?;
         let hash = get_hash()?;
-        Ok(Local { arch, version, hash })
+        Ok(Local {
+            arch,
+            version,
+            hash,
+        })
     }
 }
 
@@ -41,27 +46,35 @@ fn get_arch() -> String {
 }
 
 fn get_version() -> Result<String, Box<dyn Error>> {
-    let os_release = fs::read_to_string("/etc/catwrt-release").map_err(|e| {
+    let os_release = fs::read_to_string(VERSION_FILE).map_err(|e| {
         eprintln!("Error reading file: {}", e);
         e
     })?;
     let version = os_release
         .lines()
         .find(|line| line.starts_with("version="))
-        .map(|line| line.trim_start_matches("version=").trim_matches('"').to_string())
+        .map(|line| {
+            line.trim_start_matches("version=")
+                .trim_matches('"')
+                .to_string()
+        })
         .ok_or_else(|| "version not found in file".to_string())?;
     Ok(version)
 }
 
 fn get_hash() -> Result<String, Box<dyn Error>> {
-    let os_release = fs::read_to_string("/etc/catwrt-release").map_err(|e| {
+    let os_release = fs::read_to_string(VERSION_FILE).map_err(|e| {
         eprintln!("Error reading file: {}", e);
         e
     })?;
     let hash = os_release
         .lines()
         .find(|line| line.starts_with("hash="))
-        .map(|line| line.trim_start_matches("hash=").trim_matches('"').to_string())
+        .map(|line| {
+            line.trim_start_matches("hash=")
+                .trim_matches('"')
+                .to_string()
+        })
         .ok_or_else(|| "hash not found in file".to_string())?;
     Ok(hash)
 }
@@ -74,7 +87,26 @@ pub struct ApiResponse {
 
 impl ApiResponse {
     pub fn new(arch: &str) -> Result<ApiResponse, Box<dyn Error>> {
-        let response = reqwest::blocking::get(API_URL)?.json::<HashMap<String, String>>()?;
+        // 携带 UA 头 请求 API
+        let client = reqwest::blocking::Client::new();
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::USER_AGENT,
+            "catwrt-update/0.1.0".parse().unwrap(),
+        );
+        let response = client
+            .get(API_URL)
+            .headers(headers)
+            .send()
+            .map_err(|e| {
+                eprintln!("Error sending request: {}", e);
+                e
+            })?
+            .json::<HashMap<String, String>>()
+            .map_err(|e| {
+                eprintln!("Error parsing response: {}", e);
+                e
+            })?;
 
         let version = response
             .get("version")
