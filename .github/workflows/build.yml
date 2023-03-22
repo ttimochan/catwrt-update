@@ -8,13 +8,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [linux, macos, windows]
+        build: [linux-arm,linux-amd, macos, windows]
         include:
-          - build: linux
+          - build: linux-amd
             os: ubuntu-20.04
             rust: nightly
             target: x86_64-unknown-linux-musl
-            archive-name: catwrt-update-linux.tar.gz
+            archive-name: catwrt-update-linux-amd64.tar.gz
+          - build: linux-arm
+            os: ubuntu-20.04
+            rust: nightly
+            target: aarch64-unknown-linux-musl
+            archive-name: catwrt-update-linux-arm64.tar.gz
           - build: macos
             os: macos-latest
             rust: nightly
@@ -39,27 +44,33 @@ jobs:
           override: true
           target: ${{ matrix.target }}
 
+      - name: Install openssl-devel
+        if: matrix.build == 'linux'
+        run: |
+        sudo apt-get update
+        sudo apt-get install -y openssl-devel
+
       - name: Build binary
         run: cargo build --verbose --release --target ${{ matrix.target }}
         env:
           RUST_BACKTRACE: 1
 
       - name: Strip binary (linux and macos)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
+        if: matrix.build == 'linux-amd' || matrix.build == 'macos' || matrix.build == 'linux-arm'
         run: strip "target/${{ matrix.target }}/release/catwrt-update"
 
       - name: Build archive
         shell: bash
         run: |
           mkdir archive
-          cp LICENSE README.md archive/
+          cp archive/
           cd archive
           if [ "${{ matrix.build }}" = "windows" ]; then
             cp "../target/${{ matrix.target }}/release/catwrt-update.exe" ./
-            7z a "${{ matrix.archive-name }}" LICENSE README.md catwrt-update.exe
+            7z a "${{ matrix.archive-name }}" catwrt-update.exe
           else
             cp "../target/${{ matrix.target }}/release/catwrt-update" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
+            tar -czf "${{ matrix.archive-name }}"  catwrt-update
           fi
       - name: Upload archive
         uses: actions/upload-artifact@v1
