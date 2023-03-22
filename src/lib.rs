@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-21 22:28:23
+ * @LastEditTime: 2023-03-22 11:37:39
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -11,21 +11,21 @@ use std::error::Error;
 use std::fs;
 use std::process;
 
+const API_URL: &str = "https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update";
+
+#[derive(Debug)]
 pub struct Local {
     pub arch: String,
     pub version: String,
     pub hash: String,
 }
+
 impl Local {
     pub fn new() -> Result<Local, Box<dyn Error>> {
         let arch = get_arch();
-        let version = get_version();
-        let hash = get_hash();
-        Ok(Local {
-            arch,
-            version,
-            hash,
-        })
+        let version = get_version()?;
+        let hash = get_hash()?;
+        Ok(Local { arch, version, hash })
     }
 }
 
@@ -39,83 +39,62 @@ fn get_arch() -> String {
     };
     arch.to_string()
 }
-fn get_version() -> String {
-    let os_release = fs::read_to_string("/etc/catwrt-release").unwrap_or_else(|_| {
-        eprintln!("This file not found! Please check your system!");
-        process::exit(1)
-    });
-    let os_release = os_release.split("\n").collect::<Vec<&str>>();
-    let mut version = String::new();
-    for line in os_release {
-        if line.starts_with("version=") {
-            version = line.replace("version=", "");
-            version = version.replace("\"", "");
-            break;
-        }
-    }
-    version.to_string()
+
+fn get_version() -> Result<String, Box<dyn Error>> {
+    let os_release = fs::read_to_string("/etc/catwrt-release").map_err(|e| {
+        eprintln!("Error reading file: {}", e);
+        e
+    })?;
+    let version = os_release
+        .lines()
+        .find(|line| line.starts_with("version="))
+        .map(|line| line.trim_start_matches("version=").trim_matches('"').to_string())
+        .ok_or_else(|| "version not found in file".to_string())?;
+    Ok(version)
 }
-fn get_hash() -> String {
-    let os_release = fs::read_to_string("/etc/catwrt-release").unwrap_or_else(|_| {
-        eprintln!("This file not found! Please check your system!");
-        process::exit(1)
-    });
-    let os_release = os_release.split("\n").collect::<Vec<&str>>();
-    let mut hash = String::new();
-    for line in os_release {
-        if line.starts_with("hash=") {
-            hash = line.replace("hash=", "");
-            hash = hash.replace("\"", "");
-            break;
-        }
-    }
-    hash.to_string()
+
+fn get_hash() -> Result<String, Box<dyn Error>> {
+    let os_release = fs::read_to_string("/etc/catwrt-release").map_err(|e| {
+        eprintln!("Error reading file: {}", e);
+        e
+    })?;
+    let hash = os_release
+        .lines()
+        .find(|line| line.starts_with("hash="))
+        .map(|line| line.trim_start_matches("hash=").trim_matches('"').to_string())
+        .ok_or_else(|| "hash not found in file".to_string())?;
+    Ok(hash)
 }
+
 #[derive(Debug, serde::Deserialize)]
 pub struct ApiResponse {
     pub version: String,
     pub hash: String,
 }
+
 impl ApiResponse {
-    pub fn new() -> Result<ApiResponse, Box<dyn Error>> {
-        let arch = get_arch();
-        let response = fetch_api_data(arch)?;
-        Ok(ApiResponse {
-            version: response.version,
-            hash: response.hash,
-        })
+    pub fn new(arch: &str) -> Result<ApiResponse, Box<dyn Error>> {
+        let response = reqwest::blocking::get(API_URL)?.json::<HashMap<String, String>>()?;
+
+        let version = response
+            .get("version")
+            .ok_or_else(|| "API response does not contain version field")?
+            .to_owned();
+
+        let hash_key = match arch {
+            "amd64" => "hash_amd64",
+            "arm64" => "hash_arm",
+            "mips" => "hash_wireless_mt7986a",
+            _ => {
+                eprintln!("This arch is not supported!");
+                process::exit(1);
+            }
+        };
+        let hash = response
+            .get(hash_key)
+            .ok_or_else(|| "API response does not contain hash field")?
+            .to_owned();
+
+        Ok(ApiResponse { version, hash })
     }
-}
-fn fetch_api_data(arch: String) -> Result<ApiResponse, Box<dyn Error>> {
-    let response =
-        reqwest::blocking::get("https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update")?
-            .json::<HashMap<String, String>>()?;
-
-    let version = response
-        .get("version")
-        .ok_or("API response does not contain version field")?
-        .to_owned();
-
-    let mut hash = String::new();
-
-    if arch == "amd64" {
-        hash = response
-            .get("hash_amd64")
-            .ok_or("API response does not contain hash field")?
-            .to_owned();
-    } else if arch == "arm64" {
-        hash = response
-            .get("hash_arm")
-            .ok_or("API response does not contain hash field")?
-            .to_owned();
-    } else if arch == "mips" {
-        hash = response
-            .get("hash_wireless_mt7986a")
-            .ok_or("API response does not contain hash field")?
-            .to_owned();
-    } else {
-        eprintln!("This arch is not supported!");
-        process::exit(1);
-    }
-    Ok(ApiResponse { version, hash })
 }

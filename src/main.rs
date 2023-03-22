@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:37:19
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-20 16:35:21
+ * @LastEditTime: 2023-03-22 11:38:34
  * @FilePath: /catwrt-update/src/main.rs
  */
 use catwrt_update::{ApiResponse, Local};
@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("arch: {}", local.arch);
     println!("version: {}", local.version);
 
-    let api = ApiResponse::new()?;
+    let api = ApiResponse::new(&local.arch)?;
     if local.version == api.version && local.hash == api.hash {
         println!("You are using the latest version!");
     } else {
