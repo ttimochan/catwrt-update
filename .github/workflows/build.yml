@@ -8,17 +8,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [linux, macos, windows]
+        build: [linux-amd, linux-arm]
         include:
-          - build: linux
+          - build: linux-amd
             os: ubuntu-20.04
             archive-name: catwrt-update-amd.tar.gz
-          - build: macos
-            os: macos-latest
+          - build: linux-arm
+            os: ubuntu-20.04-arm64
             archive-name: catwrt-update-arm.tar.gz
-          - build: windows
-            os: windows-2019
-            archive-name: catwrt-update-windows.7z
+
       fail-fast: false
 
     steps:
@@ -35,19 +33,18 @@ jobs:
         env:
           RUST_BACKTRACE: 1
 
-      - name: Strip binary (linux and macos)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: cargo strip
-
       - name: Build archive
         shell: bash
         run: |
           mkdir archive
           cp LICENSE README.md archive/
           cd archive
-          if [ "${{ matrix.build }}" = "windows" ]; then
-            cp "../target/release/catwrt-update.exe" ./
-            7z a "${{ matrix.archive-name }}" LICENSE README.md catwrt-update.exe
+          if [[ "${{ matrix.build }}" == "linux-amd" ]]; then
+            cp "../target/release/catwrt-update" ./
+            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
+          elif [[ "${{ matrix.build }}" == "linux-arm" ]]; then
+            cp "../target/aarch64-unknown-linux-musl/release/catwrt-update" ./
+            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
           else
             cp "../target/release/catwrt-update" ./
             tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
