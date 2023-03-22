@@ -1,67 +1,50 @@
-name: build
+name: Build and Release
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 jobs:
   build:
-    name: build
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        build: [linux, macos, windows]
-        include:
-          - build: linux
-            os: ubuntu-latest
-            rust: nightly
-            target: x86_64-unknown-linux-gnu
-            archive-name: catwrt-update-linux-amd64.tar.gz
-          - build: macos
-            os: macos-latest
-            rust: nightly
-            target: x86_64-apple-darwin
-            archive-name: catwrt-update.tar.gz
-          - build: windows
-            os: windows-2019
-            rust: nightly-x86_64-msvc
-            target: x86_64-pc-windows-msvc
-            archive-name: catwrt-update-windows.7z
-      fail-fast: false
-
+        os: [ubuntu-latest]
+        target: [armv7-unknown-linux-musl, armv8-unknown-linux-musl , x86_64-unknown-linux-musl, mips-unknown-linux-musl]
+        name: [armv7-musl,armv8-musl ,x86_64-musl, mips-musl]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
-          target: ${{ matrix.target }}
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
 
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ matrix.target }}
-        env:
-          RUST_BACKTRACE: 1
+    - name: Install cross-compilation dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libssl-dev
 
-      - name: Strip binary (linux and macos)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: strip "target/${{ matrix.target }}/release/catwrt-update"
+    - name: Build release binaries
+      run: cargo build --release --target=$TARGET --features=ssl --all-features
 
-      - name: Build archive
-        shell: bash
-        run: |
-          mkdir archive
-          cp LICENSE README.md archive/
-          cd archive
-          if [ "${{ matrix.build }}" = "windows" ]; then
-            cp "../target/${{ matrix.target }}/release/catwrt-update.exe" ./
-            7z a "${{ matrix.archive-name }}" LICENSE README.md catwrt-update.exe
-          else
-            cp "../target/${{ matrix.target }}/release/catwrt-update" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
-          fi
-      - name: Upload archive
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ matrix.archive-name }}
-          path: archive/${{ matrix.archive-name }}
+    - name: Create release artifacts
+      run: |
+        mkdir artifacts/$NAME
+        cp target/$TARGET/release/* artifacts/$NAME/
+        cd artifacts
+        zip -r release-$NAME.zip $NAME/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        files: |
+          artifacts/*.zip
+        body: |
+          Release ${{ github.ref }}

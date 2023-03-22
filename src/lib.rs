@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-22 18:48:13
+ * @LastEditTime: 2023-03-22 19:04:07
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
@@ -22,9 +22,9 @@ pub struct Local {
 }
 impl Local {
     pub fn new() -> Result<Local, Box<dyn Error>> {
-        let arch = get_arch();
-        let version = get_version()?;
-        let hash = get_hash()?;
+        let arch = get_local_arch();
+        let version = get_local_version()?;
+        let hash = get_local_hash()?;
         Ok(Local {
             arch,
             version,
@@ -32,7 +32,7 @@ impl Local {
         })
     }
 }
-fn get_arch() -> String {
+fn get_local_arch() -> String {
     let arch = env::consts::ARCH;
     let arch = match arch {
         "x86_64" => "amd64",
@@ -42,7 +42,7 @@ fn get_arch() -> String {
     };
     arch.to_string()
 }
-fn get_version() -> Result<String, Box<dyn Error>> {
+fn get_local_version() -> Result<String, Box<dyn Error>> {
     let os_release = fs::read_to_string(VERSION_FILE).map_err(|e| {
         eprintln!("Error reading file: {}", e);
         e
@@ -58,7 +58,7 @@ fn get_version() -> Result<String, Box<dyn Error>> {
         .ok_or_else(|| "version not found in file".to_string())?;
     Ok(version)
 }
-fn get_hash() -> Result<String, Box<dyn Error>> {
+fn get_local_hash() -> Result<String, Box<dyn Error>> {
     let os_release = fs::read_to_string(VERSION_FILE).map_err(|e| {
         eprintln!("Error reading file: {}", e);
         e
