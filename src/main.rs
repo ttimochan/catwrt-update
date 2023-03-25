@@ -2,7 +2,7 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:37:19
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-22 18:44:59
+ * @LastEditTime: 2023-03-22 22:02:46
  * @FilePath: /catwrt-update/src/main.rs
  */
 use catwrt_update::{ApiResponse, Local};
