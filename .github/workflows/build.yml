@@ -14,7 +14,7 @@ jobs:
             os: ubuntu-20.04
             archive-name: catwrt-update-amd.tar.gz
           - build: linux-arm
-            os: ubuntu-20.04-arm64
+            os: ubuntu-20.04
             archive-name: catwrt-update-arm.tar.gz
 
       fail-fast: false
