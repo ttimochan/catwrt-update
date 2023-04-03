@@ -37,3 +37,5 @@ cargo build --release --target mipsel-unknown-linux-musl
 - i686-unknown-linux-musl
 - x86_64-unknown-linux-gnu
 - i686-unknown-linux-gnu
+
+然后，你就在 target 目录下找到你的可执行文件了。
