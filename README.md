@@ -8,7 +8,14 @@ Catwrt-Update is a tool to check the update of CatWrt, coding with rust.
 
 ## 编译
 
-安装 Rust 环境，然后设置 target 为你想要的平台，例如：
+安装 Rust 环境
+
+```bash
+
+curl --proto '=https' --tlsv1.2  https://sh.rustup.rs  -sSf | sh
+```
+
+然后设置 target 为你想要的平台，例如：
 
 ```bash
 rustup target add mipsel-unknown-linux-musl
