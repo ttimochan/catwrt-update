@@ -31,19 +31,4 @@ jobs:
         env:
           RUST_BACKTRACE: 1
 
-      - name: Build archive
-        shell: bash
-        run: |
-          mkdir archive
-          cp LICENSE README.md archive/
-          cd archive
-          if [[ "${{ matrix.build }}" == "linux-amd" ]]; then
-            cp "../target/release/catwrt-update" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
-             ${{ matrix.archive-name }}" LICENSE README.md catwrt-update
-          fi
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.archive-name }}
-          path: archive/${{ matrix.archive-name }}
+
