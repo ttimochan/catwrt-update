@@ -8,14 +8,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [linux-amd, linux-arm]
+        build: [linux-amd]
         include:
           - build: linux-amd
             os: ubuntu-20.04
             archive-name: catwrt-update-amd.tar.gz
-          - build: linux-arm
-            os: ubuntu-20.04
-            archive-name: catwrt-update-arm.tar.gz
+
 
       fail-fast: false
 
@@ -42,12 +40,7 @@ jobs:
           if [[ "${{ matrix.build }}" == "linux-amd" ]]; then
             cp "../target/release/catwrt-update" ./
             tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
-          elif [[ "${{ matrix.build }}" == "linux-arm" ]]; then
-            cp "../target/aarch64-unknown-linux-musl/release/catwrt-update" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
-          else
-            cp "../target/release/catwrt-update" ./
-            tar -czf "${{ matrix.archive-name }}" LICENSE README.md catwrt-update
+             ${{ matrix.archive-name }}" LICENSE README.md catwrt-update
           fi
       - name: Upload archive
         uses: actions/upload-artifact@v3
