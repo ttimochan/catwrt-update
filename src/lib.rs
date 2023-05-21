@@ -2,14 +2,12 @@
  * @Author: timochan
  * @Date: 2023-03-20 14:40:29
  * @LastEditors: timochan
- * @LastEditTime: 2023-03-22 19:04:07
+ * @LastEditTime: 2023-05-21 10:35:50
  * @FilePath: /catwrt-update/src/lib.rs
  */
 use std::collections::HashMap;
-use std::env;
 use std::error::Error;
-use std::fs;
-use std::process;
+use std::{process,fs,env};
 
 const API_URL: &str = "https://api.miaoer.xyz/api/v2/snippets/catwrt/check_update";
 const VERSION_FILE: &str = "/etc/catwrt-release";
